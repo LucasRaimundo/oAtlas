@@ -6,6 +6,7 @@ import type { CreateGlobe, GlobeStatus } from "@/domain/geography/globe";
 
 import { startAutoRotation } from "./autoRotation";
 import { trackLoadMilestones } from "./loadMilestones";
+import { recoverFromRenderErrors } from "./renderRecovery";
 import { createFallbackImagery, createImagery, enableTerrainWhenClose, initialTerrainStatus } from "./providers";
 
 const SPACE_BLACK = "#05070b";
@@ -24,6 +25,7 @@ export const createCesiumGlobe: CreateGlobe = async (container, callbacks) => {
     baseLayer: new ImageryLayer(imagery.provider),
     terrainProvider: new EllipsoidTerrainProvider(),
     skyBox: false,
+    showRenderLoopErrors: false,
   });
 
   const { scene } = widget;
@@ -61,6 +63,7 @@ export const createCesiumGlobe: CreateGlobe = async (container, callbacks) => {
       .catch((fallbackError) => console.error("[globe] fallback de imagem também falhou", fallbackError));
   });
 
+  const stopRenderRecovery = recoverFromRenderErrors(widget, callbacks.onFailure);
   const stopTerrainActivation = enableTerrainWhenClose(widget, (terrain) => updateStatus({ terrain }));
 
   let stopAutoRotation = () => {};
@@ -79,6 +82,7 @@ export const createCesiumGlobe: CreateGlobe = async (container, callbacks) => {
     destroy() {
       isDestroyed = true;
       stopMilestones();
+      stopRenderRecovery();
       stopTerrainActivation();
       stopAutoRotation();
       removeImageryErrorListener();

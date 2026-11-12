@@ -10,6 +10,7 @@ export interface GlobeCallbacks {
   onStatusChange(status: GlobeStatus): void;
   onInteractive(elapsedSinceNavigationMs: number): void;
   onSharp(elapsedSinceNavigationMs: number): void;
+  onFailure(error: unknown): void;
 }
 
 export interface GlobeHandle {

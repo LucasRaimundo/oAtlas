@@ -27,6 +27,7 @@ async function loadGlobe(
   container: HTMLElement,
   onStatusChange: (status: GlobeStatus) => void,
   onSharp: () => void,
+  onFailure: (error: unknown) => void,
 ): Promise<GlobeHandle> {
   if (!supportsWebGL()) throw new WebGLUnavailableError();
   window.CESIUM_BASE_URL = "/cesium/";
@@ -38,6 +39,7 @@ async function loadGlobe(
       console.info(`[globe] nítido em ${Math.round(elapsedMs)} ms`);
       onSharp();
     },
+    onFailure,
   });
 }
 
@@ -68,6 +70,9 @@ export function GlobeViewport() {
       },
       () => {
         if (!isCancelled) setIsPosterVisible(false);
+      },
+      () => {
+        if (!isCancelled) setState({ kind: "failed" });
       },
     )
       .then((created) => {

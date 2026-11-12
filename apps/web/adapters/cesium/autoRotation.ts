@@ -41,9 +41,16 @@ export function startAutoRotation(widget: CesiumWidget): () => void {
     const height = scene.camera.positionCartographic.height;
     const heightFactor = clamp01((height - STOPPED_HEIGHT_M) / (FULL_SPEED_HEIGHT_M - STOPPED_HEIGHT_M));
     const angle = RADIANS_PER_SECOND * elapsedSeconds * resumeFactor * heightFactor;
-    if (angle > 0) {
-      scene.camera.rotate(Cartesian3.UNIT_Z, angle);
-    }
+    if (angle <= 0) return;
+
+    // setView recalcula a orientação a cada frame; camera.rotate incremental acumula erro numérico
+    // e leva o zoom do Cesium a normalizar um vetor nulo, o que interrompe a renderização.
+    const { camera } = scene;
+    const { longitude, latitude } = camera.positionCartographic;
+    camera.setView({
+      destination: Cartesian3.fromRadians(longitude - angle, latitude, height),
+      orientation: { heading: camera.heading, pitch: camera.pitch, roll: camera.roll },
+    });
   });
 
   return () => {
