@@ -191,7 +191,7 @@ sessão.
 
 | Fase | Entrega | Valida |
 |---|---|---|
-| 0 | POC Cesium: globo, satélite, terreno, rotação, zoom, medição de carga contra a meta de 4 s | Provedor, licença, desempenho |
+| 0 | POC Cesium: globo, satélite, terreno, rotação, zoom, medição de carga contra as metas de desempenho da spec §7 | Provedor, licença, desempenho |
 | 1 | `ortelius` base: FastAPI, PostGIS, migrations, convenção cronológica, `/v1/entities/{slug}` | Modelo de dados |
 | 2 | Directus sobre o schema + editor não técnico cadastra 5 entidades reais | Fluxo editorial e formato de blocos |
 | 3 | Página imersiva com seções, relações e fontes | "Conhecer" e "Relacionar" |
