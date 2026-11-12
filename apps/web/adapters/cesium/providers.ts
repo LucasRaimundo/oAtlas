@@ -1,18 +1,19 @@
 import {
   buildModuleUrl,
-  CesiumTerrainProvider,
   createWorldImageryAsync,
   createWorldTerrainAsync,
-  EllipsoidTerrainProvider,
   Ion,
   TileMapServiceImageryProvider,
+  type CesiumWidget,
   type ImageryProvider,
-  type TerrainProvider,
 } from "cesium";
 
 import type { GlobeImagery, GlobeTerrain } from "@/domain/geography/globe";
 
 const ionToken = process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN;
+
+// Vista de longe o relevo é imperceptível; carregá-lo na abertura só disputa banda com a imagem.
+const TERRAIN_ACTIVATION_HEIGHT_M = 2_000_000;
 
 export const isIonConfigured = Boolean(ionToken);
 
@@ -36,15 +37,35 @@ export async function createImagery(): Promise<{ provider: ImageryProvider; kind
   }
 }
 
-export async function createTerrain(): Promise<{ provider: TerrainProvider; kind: GlobeTerrain }> {
-  if (!isIonConfigured) {
-    return { provider: new EllipsoidTerrainProvider(), kind: "flat" };
-  }
-  try {
-    const provider: CesiumTerrainProvider = await createWorldTerrainAsync();
-    return { provider, kind: "relief" };
-  } catch (error) {
-    console.warn("[globe] terreno indisponível, usando elipsoide", error);
-    return { provider: new EllipsoidTerrainProvider(), kind: "flat" };
-  }
+export function initialTerrainStatus(): GlobeTerrain {
+  return isIonConfigured ? "deferred" : "unavailable";
+}
+
+export function enableTerrainWhenClose(widget: CesiumWidget, onResult: (terrain: GlobeTerrain) => void): () => void {
+  if (!isIonConfigured) return () => {};
+
+  const { camera } = widget.scene;
+  let isStopped = false;
+
+  const removeCameraListener = camera.changed.addEventListener(() => {
+    if (camera.positionCartographic.height > TERRAIN_ACTIVATION_HEIGHT_M) return;
+    removeCameraListener();
+
+    createWorldTerrainAsync()
+      .then((provider) => {
+        if (isStopped) return;
+        widget.terrainProvider = provider;
+        onResult("relief");
+      })
+      .catch((error) => {
+        if (isStopped) return;
+        console.warn("[globe] terreno indisponível, mantendo superfície lisa", error);
+        onResult("unavailable");
+      });
+  });
+
+  return () => {
+    isStopped = true;
+    removeCameraListener();
+  };
 }

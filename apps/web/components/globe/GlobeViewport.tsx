@@ -23,19 +23,27 @@ function supportsWebGL(): boolean {
   return Boolean(canvas.getContext("webgl2") ?? canvas.getContext("webgl"));
 }
 
-async function loadGlobe(container: HTMLElement, onStatusChange: (status: GlobeStatus) => void): Promise<GlobeHandle> {
+async function loadGlobe(
+  container: HTMLElement,
+  onStatusChange: (status: GlobeStatus) => void,
+  onSharp: () => void,
+): Promise<GlobeHandle> {
   if (!supportsWebGL()) throw new WebGLUnavailableError();
   window.CESIUM_BASE_URL = "/cesium/";
   const { createCesiumGlobe } = await import("@/adapters/cesium/createCesiumGlobe");
   return createCesiumGlobe(container, {
     onStatusChange,
-    onFirstRender: (elapsedMs) => console.info(`[globe] primeira renderização em ${Math.round(elapsedMs)} ms`),
+    onInteractive: (elapsedMs) => console.info(`[globe] interativo em ${Math.round(elapsedMs)} ms`),
+    onSharp: (elapsedMs) => {
+      console.info(`[globe] nítido em ${Math.round(elapsedMs)} ms`);
+      onSharp();
+    },
   });
 }
 
 function degradedNotice(status: GlobeStatus): string | null {
   if (status.imagery === "fallback") return "Imagem de satélite indisponível. Exibindo mapa simplificado.";
-  if (status.terrain === "flat") return "Relevo indisponível no momento.";
+  if (status.terrain === "unavailable") return "Relevo indisponível no momento.";
   return null;
 }
 
@@ -43,6 +51,8 @@ export function GlobeViewport() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<ViewportState>({ kind: "loading" });
   const [attempt, setAttempt] = useState(0);
+  const [isPosterVisible, setIsPosterVisible] = useState(true);
+
 
   useEffect(() => {
     const container = containerRef.current;
@@ -51,9 +61,15 @@ export function GlobeViewport() {
     let handle: GlobeHandle | null = null;
     let isCancelled = false;
 
-    loadGlobe(container, (status) => {
-      if (!isCancelled) setState({ kind: "ready", status });
-    })
+    loadGlobe(
+      container,
+      (status) => {
+        if (!isCancelled) setState({ kind: "ready", status });
+      },
+      () => {
+        if (!isCancelled) setIsPosterVisible(false);
+      },
+    )
       .then((created) => {
         if (isCancelled) created.destroy();
         else handle = created;
@@ -77,8 +93,24 @@ export function GlobeViewport() {
   const notice = state.kind === "ready" ? degradedNotice(state.status) : null;
 
   return (
-    <div className="relative h-full w-full bg-space-black">
-      <div ref={containerRef} className="absolute inset-0" />
+    <div className="relative h-full w-full overflow-hidden bg-space-black">
+      <div ref={containerRef} className="absolute inset-0" onPointerDown={() => setIsPosterVisible(false)} />
+
+      {/* Renderizado com a mesma câmera do globo (adapters/cesium/createCesiumGlobe.ts). O Cesium usa o FOV
+          na maior dimensão da tela, por isso o tamanho em vmax. Já otimizado em WebP; next/image não agrega. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/globe-poster-1024.webp"
+        srcSet="/images/globe-poster-1024.webp 1024w, /images/globe-poster-1456.webp 1456w"
+        sizes="71vmax"
+        alt=""
+        aria-hidden
+        fetchPriority="high"
+        decoding="async"
+        className={`pointer-events-none absolute top-1/2 left-1/2 size-[71.09vmax] max-w-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-700 ${
+          isPosterVisible || state.kind === "unsupported" || state.kind === "failed" ? "opacity-100" : "opacity-0"
+        }`}
+      />
 
       {notice && (
         <p className="absolute top-4 left-4 rounded border border-gold/30 bg-deep-blue/70 px-3 py-1.5 text-xs text-cold-white/80 backdrop-blur">
@@ -88,7 +120,7 @@ export function GlobeViewport() {
 
       {state.kind === "unsupported" && (
         <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
-          <p className="max-w-sm text-sm text-cold-white/80">
+          <p className="max-w-sm rounded bg-deep-blue/85 px-4 py-3 text-sm text-cold-white/90 backdrop-blur">
             Seu navegador ou dispositivo não suporta WebGL, necessário para exibir o globo.
           </p>
         </div>
@@ -96,7 +128,7 @@ export function GlobeViewport() {
 
       {state.kind === "failed" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
-          <p className="max-w-sm text-sm text-cold-white/80">Não foi possível carregar o globo.</p>
+          <p className="max-w-sm rounded bg-deep-blue/85 px-4 py-3 text-sm text-cold-white/90 backdrop-blur">Não foi possível carregar o globo.</p>
           <button
             type="button"
             onClick={() => {

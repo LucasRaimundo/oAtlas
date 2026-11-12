@@ -1,5 +1,5 @@
 export type GlobeImagery = "satellite" | "fallback";
-export type GlobeTerrain = "relief" | "flat";
+export type GlobeTerrain = "deferred" | "relief" | "unavailable";
 
 export interface GlobeStatus {
   imagery: GlobeImagery;
@@ -8,7 +8,8 @@ export interface GlobeStatus {
 
 export interface GlobeCallbacks {
   onStatusChange(status: GlobeStatus): void;
-  onFirstRender(elapsedSinceNavigationMs: number): void;
+  onInteractive(elapsedSinceNavigationMs: number): void;
+  onSharp(elapsedSinceNavigationMs: number): void;
 }
 
 export interface GlobeHandle {
