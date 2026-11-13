@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-deep-blue: #071321;
+  --color-space-black: #05070b;
+  --color-gold: #c5a15b;
+  --color-cold-white: #dce5ef;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--color-space-black);
+  color: var(--color-cold-white);
+}

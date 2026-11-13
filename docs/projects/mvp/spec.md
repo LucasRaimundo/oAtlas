@@ -143,7 +143,7 @@ acadêmico.
 | Produção de conteúdo | Pessoas não técnicas. O cadastro editorial entra no MVP. |
 | Uso | Não comercial. |
 | Volume | 50–100 entidades com página completa, concentradas em poucos temas da região prioritária para que as relações entre elas sejam densas. |
-| Desempenho | Globo visível e interativo em até 4 s em notebook comum com rede 4G. A fase de prova de conceito mede o valor real e confirma ou revisa a meta. |
+| Desempenho | Em notebook comum: algo visível do planeta em até 2 s no 4G lento (1,6 Mbps, 150 ms) e globo interativo em até 5 s no 4G típico (9 Mbps, 60 ms). Revisada após a medição da prova de conceito: o globo interativo em 4 s é impossível no 4G lento e, no 4G típico, fica limitado pelo download do Cesium e pela autorização do provedor de imagens. |
 | Prazo | Sem data-alvo. A entrega é guiada pelas fases do plano. |
 
 ### 7.1 Critério de sucesso
