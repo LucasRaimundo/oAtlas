@@ -153,8 +153,16 @@ inverte a relação com o `ortelius`.
   componente e rótulo de cada campo), coleções somem do menu e o
   painel fica inutilizável para um editor. A configuração é versionada
   no `ortelius`.
-- **Telemetria:** a licença Core a marca como obrigatória. Verificar se
-  `TELEMETRY=false` é respeitado antes de expor o painel.
+- **Telemetria:** no Core, a licença a torna obrigatória e
+  `TELEMETRY=false` é ignorado (verificado no código da 12.6.1). A cada
+  6 horas, o Directus envia contagens agregadas (usuários, coleções,
+  itens, arquivos, tamanho do banco, requisições), a versão, um
+  identificador aleatório do projeto e a URL pública do painel; nenhum
+  conteúdo editorial, e-mail ou chave. O relatório com dados do dono do
+  projeto fica desligado (`PROJECT_OWNER_ENABLED=false`).
+  **Decisão:** aceitar as métricas agregadas no MVP. Bloquear a saída
+  de rede contornaria um item da licença e não é adotado. Reavaliar
+  junto com a chave gratuita antes da fase 8.
 
 ### 3.5 Busca
 
