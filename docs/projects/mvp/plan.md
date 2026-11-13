@@ -28,6 +28,28 @@ como serviço.
   como erro controlado do recurso (estado de erro do cartão, página ou
   camada), nunca como tela quebrada.
 
+### 2.1 Conteúdo das seções
+
+`sections[].content` é uma lista de blocos discriminada por `type`:
+
+| `type` | Campos |
+|---|---|
+| `heading` | `level` (3 ou 4), `text` |
+| `paragraph` | `text` |
+| `list` | `style` (`ordered` ou `unordered`), `items: [{text, items}]` (aninhável) |
+| `quote` | `text`, `caption` (texto puro ou `null`) |
+
+`text` é sempre uma lista de trechos `{text, bold, italic, href}`. O
+frontend monta o texto a partir dos trechos e **nunca renderiza HTML**:
+a API já descartou toda marcação que não seja negrito, itálico ou link
+`http(s)`. O nível 1 é o nome da entidade e o 2, o título da seção;
+por isso títulos dentro da seção são 3 ou 4.
+
+Imagem não é um tipo de bloco no MVP enquanto a entrega de imagens não
+for decidida (§9, questão 2). Seções que a API não consegue representar
+não chegam ao frontend: são descartadas e registradas no log, e a página
+renderiza as demais.
+
 ## 3. Decisões técnicas que este plano propõe
 
 Cada item resolve um ponto em aberto da `ARCH.md` ou corrige um risco.
@@ -137,10 +159,11 @@ inverte a relação com o `ortelius`.
 - **Formato dos blocos:** o editor grava um objeto Editor.js
   (`{time, version, blocks: [{id, type, data}]}`), não uma lista.
   Tipos observados: `header`, `paragraph`, `nestedlist`, `quote`. A
-  formatação dentro do texto vem como HTML (`<b>`). O banco passa a
-  aceitar esse objeto; a API do `ortelius` valida por tipo de bloco,
-  normaliza para o contrato público e filtra o HTML com uma lista de
-  tags permitidas. O frontend nunca recebe o formato bruto do editor.
+  formatação dentro do texto vem como HTML (`<b>`). O banco guarda esse
+  objeto; a API do `ortelius` o converte no contrato da §2.1, com o
+  texto em trechos estruturados. O frontend nunca recebe o formato bruto
+  do editor nem HTML. O painel restringe o editor aos quatro tipos do
+  contrato.
 - **Regra de publicação:** o trigger diferido funciona com a transação
   do Directus, inclusive criando entidade e fontes juntas. A mensagem
   que o editor vê é técnica (`[INTERNAL_SERVER_ERROR] COMMIT; - ...`).
