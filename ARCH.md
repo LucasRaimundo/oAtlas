@@ -1274,7 +1274,70 @@ Vitest e Playwright foram definidos como base de testes.
 -   Licenças, atribuição e atualização das bases.
 -   Limites exatos de zoom/LOD e cache.
 
-## 17. Ordem sugerida de implementação
+## 17. Versionamento e lançamentos
+
+### 17.1 Três versões independentes
+
+  -----------------------------------------------------------------------
+  Versão                  Exemplo                 Significado
+  ----------------------- ----------------------- -----------------------
+  Contrato da API         `/v1`                   Contrato consumido pelos
+                                                  clientes. Só muda com
+                                                  quebra incompatível que
+                                                  exija manter duas
+                                                  versões no ar.
+
+  Repositório             `v0.2.0`                Semver de cada
+                                                  repositório (`oAtlas`,
+                                                  `ortelius`), versionado
+                                                  de forma independente.
+
+  Produto                 Atlas Beta              Nome público do
+                                                  lançamento. Decisão de
+                                                  negócio.
+  -----------------------------------------------------------------------
+
+Os repositórios não sincronizam números de versão. O elo entre eles é o
+contrato OpenAPI; a compatibilidade é registrada nas notas de versão
+(ex.: "requer `ortelius` ≥ `v0.3.0`").
+
+### 17.2 Semver durante o MVP
+
+O MVP é lançado como `0.x` (Atlas Beta). Em `0.x`, mudanças
+incompatíveis são permitidas no MINOR, o que acomoda o aprendizado da
+validação da hipótese sem prometer estabilidade.
+
+-   **`0.MINOR.0`:** fim de uma fase do plano do MVP; entrega
+    demonstrável.
+-   **`0.x.PATCH`:** correção sobre uma versão já marcada, sem
+    funcionalidade nova.
+-   **`1.0.0`:** quando os sinais de sucesso da spec confirmarem a
+    hipótese e o contrato estiver estável. Decisão de negócio.
+
+Um repositório só recebe nova versão nas fases em que muda.
+
+### 17.3 Fluxo
+
+``` text
+issue → branch → PR → merge na main          (para cada issue da fase)
+                            ↓
+          fase concluída: tag vX.Y.0 na main + notas de versão
+                            ↓
+          correção posterior: issue → PR → merge → tag vX.Y.1
+```
+
+-   Issue não gera tag. Tags marcam versões entregues, que agrupam
+    várias issues.
+-   Tags são criadas na `main`, nunca em branches de funcionalidade.
+-   Notas de versão derivam das mensagens de commit (`feat`, `fix`,
+    `chore`, `docs`).
+-   Correção urgente com a `main` já à frente da versão em produção:
+    branch a partir da tag, correção, tag PATCH e retorno da correção
+    para a `main`.
+-   Deploy sempre a partir de uma tag, o que garante rastreabilidade e
+    rollback.
+
+## 18. Ordem sugerida de implementação
 
 1.  Definir estrutura simples de projetos frontend/backend.
 2.  Configurar Next.js, TypeScript e design system mínimo.
@@ -1296,7 +1359,7 @@ Vitest e Playwright foram definidos como base de testes.
 16. Evoluir para conexões, conquistas e colaboradores após validar o
     núcleo.
 
-## 18. Princípio norteador
+## 19. Princípio norteador
 
 > **O Atlas não entrega um caminho pronto: oferece um mundo para
 > explorar e histórias para descobrir.**
