@@ -83,14 +83,18 @@ acadêmico.
   incluindo o Norte da África.
 - Volume inicial definido em §7.
 
-**Cadastro editorial**
-- Pessoas não técnicas cadastram e editam entidades, seções, relações,
-  fontes e imagens sem depender do desenvolvedor.
+**Produção e revisão de conteúdo**
+- Produção híbrida: a coleta automatizada a partir de fontes abertas gera
+  rascunhos de entidades, com fonte e licença de origem registradas.
+- Um revisor do time revisa, corrige e publica os rascunhos pelo painel,
+  sem depender de código. Também pode cadastrar entidades manualmente.
+- Nada é publicado sem revisão humana.
 - Conteúdo tem estado de rascunho e publicado; só publicado aparece no
   Atlas.
 - Publicação bloqueada para entidade sem fonte.
-- Acesso restrito a contas de editores convidados.
-- Geometrias históricas não são editadas pelos editores; entram pelo
+- Só entram fontes com licença compatível com o uso pretendido.
+- Acesso ao painel restrito a contas convidadas.
+- Geometrias históricas não são editadas no painel; entram pelo
   processo de dados geográficos, com procedência.
 
 ### 4.2 Fora (com motivo)
@@ -133,14 +137,14 @@ acadêmico.
 - **Procedência:** nenhuma geometria histórica ou conteúdo publicado sem
   fonte registrada.
 - **Idioma:** português.
-- **Licenças:** todo dado e imagem usado tem licença compatível com o
-  uso pretendido e atribuição exibida.
+- **Licenças:** todo dado, texto e imagem usado tem licença compatível
+  com o uso pretendido e atribuição exibida.
 
 ## 7. Decisões de negócio
 
 | Tema | Decisão |
 |---|---|
-| Produção de conteúdo | Pessoas não técnicas. O cadastro editorial entra no MVP. |
+| Produção de conteúdo | Híbrida: rascunhos gerados automaticamente a partir de fontes abertas, revisados e publicados por um revisor do time (hoje, o próprio desenvolvedor). Nada é publicado sem revisão humana. |
 | Uso | Não comercial. |
 | Volume | 50–100 entidades com página completa, concentradas em poucos temas da região prioritária para que as relações entre elas sejam densas. |
 | Desempenho | Em notebook comum: algo visível do planeta em até 2 s no 4G lento (1,6 Mbps, 150 ms) e globo interativo em até 5 s no 4G típico (9 Mbps, 60 ms). Revisada após a medição da prova de conceito: o globo interativo em 4 s é impossível no 4G lento e, no 4G típico, fica limitado pelo download do Cesium e pela autorização do provedor de imagens. |
@@ -193,7 +197,9 @@ exibido.
 - Desligar a fonte de dados históricos não impede o uso do globo nem das
   páginas.
 - Atribuições de imagens e dados visíveis na interface.
-- Um editor não técnico cria uma entidade com seções, relações, fonte e
-  imagem e a publica sem ajuda do desenvolvedor.
+- Um rascunho gerado automaticamente é revisado, corrigido e publicado
+  pelo painel, com seções, relações, fonte e imagem, sem mexer em código.
+- Toda entidade gerada automaticamente registra a fonte e a licença de
+  origem dos dados e do texto.
 - Meta de desempenho de §7 atendida.
 - Os três sinais de §7.1 são coletados desde o lançamento.

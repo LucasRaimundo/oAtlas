@@ -100,9 +100,11 @@ no globo exigiria biblioteca de terceiros ou rasterização.
 
 ### 3.4 Conteúdo editorial
 
-Editores não são técnicos, então o MVP precisa de painel. Construir um
-admin próprio (auth, CRUD, editor de blocos, upload, rascunho/publicado)
-é o item mais caro do MVP e não valida a hipótese.
+Todo conteúdo passa por revisão humana antes de publicar (spec §7), seja
+rascunho gerado pela ingestão (§3.8), seja cadastro manual. O revisor
+precisa de um painel. Construir um admin próprio (auth, CRUD, editor de
+blocos, upload, rascunho/publicado) é o item mais caro do MVP e não
+valida a hipótese.
 
 **Proposta: Directus como painel editorial sobre o mesmo PostgreSQL.**
 - Trabalha sobre o schema existente (introspecção), em vez de impor o
@@ -112,11 +114,11 @@ admin próprio (auth, CRUD, editor de blocos, upload, rascunho/publicado)
 - Licença MSCL-1.0-GPL (desde a v12; antes BSL 1.1): sem limite de
   receita ou de funcionários; proíbe apenas o uso concorrente (oferecer o
   próprio Directus a terceiros). Uso interno é permitido. O Atlas se
-  enquadra: editores usam o painel internamente e o público lê pela API
+  enquadra: o revisor usa o painel internamente e o público lê pela API
   do `ortelius`. Cada versão converte para GPL-3.0 após quatro anos.
 - Sem chave de licença, a instância roda no plano **Core**. Limites
   medidos no spike (endpoint `/license` da 12.6.1):
-  - **3 usuários, incluindo o admin**, o que deixa 2 editores;
+  - **3 usuários, incluindo o admin**, o que deixa 2 contas de revisão;
   - 25 coleções e 5 Flows;
   - **histórico de revisões e atividade de 30 dias**;
   - sem SSO (irrelevante: o acesso é por convite, com e-mail e senha)
@@ -127,11 +129,11 @@ admin próprio (auth, CRUD, editor de blocos, upload, rascunho/publicado)
 
   Uma chave gratuita (organizações com menos de 50 funcionários e menos
   de US$ 5 mi de receita anual) amplia limites e recursos.
-- **Decisão:** o MVP começa no Core, que basta para o cadastro inicial.
-  Antes do deploy (fase 8), reavaliar a chave gratuita: o limite de 2
-  editores e o histórico de 30 dias provavelmente não sustentam a
-  produção de 50–100 entidades. O enquadramento da organização é
-  decisão de negócio.
+- **Decisão:** o MVP começa no Core. Com a produção híbrida e um único
+  revisor, o limite de usuários não é problema. Antes do deploy (fase
+  8), reavaliar a chave gratuita pelo histórico de revisões de 30 dias,
+  que pode não bastar para auditar o conteúdo publicado. O enquadramento
+  da organização é decisão de negócio.
 
 **Regras para não acoplar o domínio ao CMS:**
 - Migrations do `ortelius` (Alembic) são donas do schema. Directus não
@@ -196,9 +198,9 @@ de busca externo no MVP.
 
 - API pública do `ortelius` somente leitura e só enxerga conteúdo
   publicado.
-- Escrita ocorre por dois caminhos: Directus (editores) e pipeline
-  (geometrias). Cada um com usuário de banco próprio e permissões
-  mínimas; a API usa um usuário só de leitura.
+- Escrita ocorre por dois caminhos: Directus (revisor) e pipeline
+  (geometrias e rascunhos de conteúdo). Cada um com usuário de banco
+  próprio e permissões mínimas; a API usa um usuário só de leitura.
 - Directus em domínio separado, contas apenas por convite, sem registro
   aberto.
 - CORS restrito ao domínio do frontend, rate limit por IP e limites de
@@ -218,6 +220,38 @@ frontend no momento da navegação.
 Falha: analytics fora não afeta o Atlas; o envio é assíncrono e
 descartável.
 
+### 3.8 Ingestão de conteúdo (rascunhos)
+
+A produção é híbrida (spec §7): o pipeline gera rascunhos e o revisor
+publica pelo painel (§3.4). Módulo `ortelius/pipeline/`, executado por
+CLI, entidade a entidade.
+
+**Fatos estruturados: Wikidata (CC0).** Tipo, coordenadas, datas,
+nomes alternativos (rótulos em vários idiomas) e relações entre
+entidades já existentes no Atlas. Cada entidade importada cita o
+Wikidata como fonte (`dataset`, CC0) na Biblioteca Central.
+
+**Texto: rascunho gerado por modelo de linguagem.** O revisor indica as
+fontes de cada entidade (cadastradas na Biblioteca Central); o pipeline
+gera resumo, introdução e seções no formato de blocos (§2.1) a partir
+delas. O modelo não é fonte: as citações da entidade são as fontes
+indicadas, nunca referências produzidas pelo modelo.
+
+**Regras:**
+- O pipeline só escreve rascunhos. Publicar é sempre ação do revisor.
+- Idempotência por identificador externo (código Wikidata, ex.:
+  `Q2277`), em coluna própria e única em `entities`.
+- O pipeline nunca altera uma entidade que já saiu de rascunho: o que o
+  revisor publicou não é sobrescrito por uma nova execução.
+- Cada entidade é gravada numa transação: falha no meio não deixa
+  entidade pela metade.
+- A origem do rascunho (dados do Wikidata, texto gerado) fica
+  registrada para o revisor saber o que conferir.
+
+**Revisão de texto gerado:** conferir cada data, nome e afirmação contra
+as fontes indicadas antes de publicar. O risco principal é o modelo
+afirmar com segurança algo que as fontes não dizem.
+
 ## 4. Provedores e dados
 
 | Necessidade | Candidato | Risco a validar |
@@ -225,6 +259,8 @@ descartável.
 | Satélite e terreno | Cesium ion (plano gratuito) | MVP não comercial é compatível. Validar cota de tráfego na fase 0. Uso comercial futuro exige plano pago ou troca de provedor. |
 | Base mundial | Natural Earth | Domínio público. Baixo risco. |
 | Lugares antigos | Pleiades | CC BY; exige atribuição. |
+| Fatos estruturados das entidades | Wikidata | CC0. Baixo risco de licença; qualidade varia por item e precisa de revisão. |
+| Rascunho de texto | Modelo de linguagem via API (provedor a definir) | Custo por entidade, chave de API como segredo, e erros factuais que exigem revisão contra as fontes. |
 | Fronteiras históricas | A pesquisar (ex.: historical-basemaps) | Licença, precisão e procedência de cada geometria. **Maior risco de dados do MVP.** 6 recortes × região prioritária, cada geometria com fonte. |
 
 A região prioritária é registrada como um polígono de cobertura por
@@ -268,7 +304,8 @@ sessão.
 |---|---|---|
 | 0 | POC Cesium: globo, satélite, terreno, rotação, zoom, medição de carga contra as metas de desempenho da spec §7 | Provedor, licença, desempenho |
 | 1 | `ortelius` base: FastAPI, PostGIS, migrations, convenção cronológica, `/v1/entities/{slug}` | Modelo de dados |
-| 2 | Directus sobre o schema + editor não técnico cadastra 5 entidades reais | Fluxo editorial e formato de blocos |
+| 2 | Directus sobre o schema + revisor cadastra 5 entidades reais pelo painel | Painel de revisão e formato de blocos |
+| 2b | Ingestão de rascunhos: fatos do Wikidata + texto gerado a partir de fontes indicadas, revisados no painel | Produção híbrida |
 | 3 | Página imersiva com seções, relações e fontes | "Conhecer" e "Relacionar" |
 | 4 | Base cartográfica estática + marcadores + cartão de prévia | "Explorar" |
 | 5 | Busca com aliases | Jornadas 4 e 5 |
@@ -297,7 +334,9 @@ sessão.
 | Geometria histórica inválida | Pipeline rejeita na ingestão (`ST_IsValid`, SRID, período coerente); nunca chega ao banco publicado. |
 | Conteúdo sem fonte | Constraint/validação no banco recusa publicar, independentemente do CMS. |
 | Directus fora | Atlas continua no ar (API lê direto do banco); só a edição para. |
-| Editor salva bloco em formato inválido | Validação do `ortelius` rejeita a seção na leitura e loga; a página renderiza as demais seções. |
+| Bloco em formato inválido (painel ou pipeline) | Validação do `ortelius` rejeita a seção na leitura e loga; a página renderiza as demais seções. |
+| Wikidata ou provedor do modelo fora durante a ingestão | A entidade em processamento falha inteira (transação) e a execução segue para as próximas; nada é publicado. Rodar de novo completa o que faltou. |
+| Texto gerado com erro factual | Fica em rascunho; a revisão contra as fontes é obrigatória antes de publicar. |
 | GPU fraca / WebGL indisponível | Detectar e oferecer modo sem globo (busca + páginas). |
 
 ## 9. Questões em aberto
@@ -311,5 +350,7 @@ Técnicas, para decidir durante a execução:
    (ex.: armazenamento S3 com CDN e URL pública montada pela API).
 3. Origem e licença das imagens das entidades.
 4. Observabilidade mínima (logs e erros) no lançamento.
+5. Provedor e modelo de linguagem para os rascunhos de texto, e custo
+   estimado por entidade.
 
 Bloqueantes de negócio: ver `spec.md` §7.
