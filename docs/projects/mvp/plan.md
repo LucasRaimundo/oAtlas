@@ -87,9 +87,22 @@ admin próprio (auth, CRUD, editor de blocos, upload, rascunho/publicado)
   seu. O schema continua sendo das migrations do `ortelius`.
 - Entrega pronto: contas e papéis, CRUD, relações, upload de mídia,
   rascunho/publicado.
-- Licença BSL 1.1: gratuito para organizações abaixo de US$ 5 mi de
-  receita anual. Compatível com o MVP não comercial; reavaliar se o
-  cenário mudar.
+- Licença MSCL-1.0-GPL (desde a v12; antes BSL 1.1): sem limite de
+  receita ou de funcionários; proíbe apenas o uso concorrente (oferecer o
+  próprio Directus a terceiros). Uso interno é permitido. O Atlas se
+  enquadra: editores usam o painel internamente e o público lê pela API
+  do `ortelius`. Cada versão converte para GPL-3.0 após quatro anos.
+- Sem chave de licença, a instância roda no plano **Core**: sem SSO
+  (irrelevante, o acesso é por convite com e-mail e senha), sem IA e
+  **sem regras de permissão personalizadas**, com limites numéricos de
+  usuários e coleções não documentados oficialmente. Uma chave gratuita
+  (organizações com menos de 50 funcionários e menos de US$ 5 mi de
+  receita anual) amplia limites e recursos.
+- **Decisão:** o MVP começa no Core. O spike da fase 2 confirma se ele
+  basta (limite de usuários, quantidade de coleções e permissões por
+  coleção suficientes para o papel Editor). Se não bastar, solicitar a
+  chave gratuita antes do deploy (fase 8), condicionada ao enquadramento
+  da organização, que é decisão de negócio.
 
 **Regras para não acoplar o domínio ao CMS:**
 - Migrations do `ortelius` (Alembic) são donas do schema. Directus não
