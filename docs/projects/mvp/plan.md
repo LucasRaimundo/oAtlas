@@ -92,21 +92,36 @@ admin próprio (auth, CRUD, editor de blocos, upload, rascunho/publicado)
   próprio Directus a terceiros). Uso interno é permitido. O Atlas se
   enquadra: editores usam o painel internamente e o público lê pela API
   do `ortelius`. Cada versão converte para GPL-3.0 após quatro anos.
-- Sem chave de licença, a instância roda no plano **Core**: sem SSO
-  (irrelevante, o acesso é por convite com e-mail e senha), sem IA e
-  **sem regras de permissão personalizadas**, com limites numéricos de
-  usuários e coleções não documentados oficialmente. Uma chave gratuita
-  (organizações com menos de 50 funcionários e menos de US$ 5 mi de
-  receita anual) amplia limites e recursos.
-- **Decisão:** o MVP começa no Core. O spike da fase 2 confirma se ele
-  basta (limite de usuários, quantidade de coleções e permissões por
-  coleção suficientes para o papel Editor). Se não bastar, solicitar a
-  chave gratuita antes do deploy (fase 8), condicionada ao enquadramento
-  da organização, que é decisão de negócio.
+- Sem chave de licença, a instância roda no plano **Core**. Limites
+  medidos no spike (endpoint `/license` da 12.6.1):
+  - **3 usuários, incluindo o admin**, o que deixa 2 editores;
+  - 25 coleções e 5 Flows;
+  - **histórico de revisões e atividade de 30 dias**;
+  - sem SSO (irrelevante: o acesso é por convite, com e-mail e senha)
+    e sem IA;
+  - **sem regras de permissão por linha**; permissão por coleção
+    funciona e basta para o papel Editor;
+  - telemetria marcada como obrigatória.
+
+  Uma chave gratuita (organizações com menos de 50 funcionários e menos
+  de US$ 5 mi de receita anual) amplia limites e recursos.
+- **Decisão:** o MVP começa no Core, que basta para o cadastro inicial.
+  Antes do deploy (fase 8), reavaliar a chave gratuita: o limite de 2
+  editores e o histórico de 30 dias provavelmente não sustentam a
+  produção de 50–100 entidades. O enquadramento da organização é
+  decisão de negócio.
 
 **Regras para não acoplar o domínio ao CMS:**
 - Migrations do `ortelius` (Alembic) são donas do schema. Directus não
-  cria nem altera tabelas de domínio.
+  cria nem altera tabelas de domínio. Isso é garantido pelo banco, não
+  por convenção: o Directus guarda as próprias tabelas num schema
+  `directus` (`DB_SEARCH_PATH=directus,public`) e acessa as tabelas de
+  domínio com um papel que só lê e escreve dados. No spike, ele tentou
+  criar FKs em tabelas de domínio ao configurar relações com arquivos, e
+  o banco recusou.
+- Relações com tabelas do Directus (ex.: imagem de capa →
+  `directus_files`) existem só como metadado do Directus, sem FK no
+  domínio. A coluna guarda o identificador do arquivo.
 - Directus escreve; a API do `ortelius` lê. O frontend nunca chama o
   Directus diretamente.
 - Validações que importam (publicar exige fonte, datas coerentes,
@@ -118,12 +133,28 @@ admin próprio (auth, CRUD, editor de blocos, upload, rascunho/publicado)
 **Alternativa descartada:** Payload CMS. Exige ser dono do schema, o que
 inverte a relação com o `ortelius`.
 
-**Riscos:**
-- Tabelas `directus_*` no mesmo banco. Isolar em schema PostgreSQL
-  próprio se o Directus permitir; senão, aceitar e documentar.
-- Conteúdo das seções em JSONB: o editor de blocos do Directus precisa
-  produzir o formato que o schema de blocos do `ortelius` valida.
-  Validar isso na fase 2 antes de cadastrar volume.
+**Resultados do spike da fase 2** (Directus 12.6.1):
+- **Formato dos blocos:** o editor grava um objeto Editor.js
+  (`{time, version, blocks: [{id, type, data}]}`), não uma lista.
+  Tipos observados: `header`, `paragraph`, `nestedlist`, `quote`. A
+  formatação dentro do texto vem como HTML (`<b>`). O banco passa a
+  aceitar esse objeto; a API do `ortelius` valida por tipo de bloco,
+  normaliza para o contrato público e filtra o HTML com uma lista de
+  tags permitidas. O frontend nunca recebe o formato bruto do editor.
+- **Regra de publicação:** o trigger diferido funciona com a transação
+  do Directus, inclusive criando entidade e fontes juntas. A mensagem
+  que o editor vê é técnica (`[INTERNAL_SERVER_ERROR] COMMIT; - ...`).
+  Mitigação: mensagem do trigger em linguagem de editor e um Flow de
+  validação antes de salvar. O trigger continua sendo a garantia.
+- **Entrega de imagens:** por padrão, o Directus serve os arquivos
+  (`/assets/<id>`), o que conflita com "o frontend nunca chama o
+  Directus". A decisão é tomada junto com a questão em aberto 2 (§9).
+- **Configuração obrigatória:** sem metadado configurado (ordem,
+  componente e rótulo de cada campo), coleções somem do menu e o
+  painel fica inutilizável para um editor. A configuração é versionada
+  no `ortelius`.
+- **Telemetria:** a licença Core a marca como obrigatória. Verificar se
+  `TELEMETRY=false` é respeitado antes de expor o painel.
 
 ### 3.5 Busca
 
@@ -244,7 +275,9 @@ Técnicas, para decidir durante a execução:
 
 1. Hospedagem do frontend, da API, do Directus e do PostGIS, e
    orçamento mensal.
-2. CDN e armazenamento para arquivos estáticos e mídia.
+2. CDN e armazenamento para arquivos estáticos e mídia, incluindo como
+   o frontend obtém as imagens enviadas pelo Directus sem chamá-lo
+   (ex.: armazenamento S3 com CDN e URL pública montada pela API).
 3. Origem e licença das imagens das entidades.
 4. Observabilidade mínima (logs e erros) no lançamento.
 
