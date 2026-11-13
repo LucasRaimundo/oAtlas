@@ -95,5 +95,6 @@ A especificação não substitui a necessidade de aprovação.
 ### 4.4. Git e segredos
 
 - **Branch e PR:** Nunca faça commit ou push, a menos que eu solicite explicitamente. Trabalhe em uma branch de funcionalidade (*feature branch*) e com pontos de commit para eu commitar.
+- **Pontos de commit:** Divida a tarefa em pontos de commit pequenos e revisáveis. Ao concluir cada ponto (com a verificação do repositório passando), pare e me avise com o título da mensagem de commit sugerida e a lista de arquivos alterados. Eu analiso e commito; só avance para o próximo ponto depois disso.
 - **Zero segredos:** Nunca faça commit de arquivos `.env`, chaves de API, credenciais AWS, tokens ou strings de conexão. Também nunca exponha esses dados nas respostas ou nas diferenças apresentadas em PRs. Utilize variáveis de ambiente e gerenciadores de segredos.
 - **Deixe o repositório limpo:** Depois de abrir um PR, confirme que tudo foi commitado e enviado ao remoto (*pushed*). Em seguida, volte para a branch principal e execute o pull. Nunca deixe o repositório parado em uma branch de PR e nunca abandone alterações não commitadas ao trocar de branch.
