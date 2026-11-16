@@ -237,6 +237,53 @@ gera resumo, introdução e seções no formato de blocos (§2.1) a partir
 delas. O modelo não é fonte: as citações da entidade são as fontes
 indicadas, nunca referências produzidas pelo modelo.
 
+**Como o texto das fontes chega ao modelo.** O modelo lê o texto das
+fontes, não escreve de memória:
+- **Por URL:** a fonte registra a URL do texto (tradução ou original).
+  O pipeline baixa só de uma lista fechada de domínios (Perseus,
+  LacusCurtius, Wikisource, Project Gutenberg), remove a marcação e
+  registra URL, data e hash do texto usado.
+- **Trecho colado:** para fontes sem texto aberto na web, o revisor
+  cola o trecho relevante na citação.
+- **Licença do texto de entrada:** só domínio público, CC0 ou CC BY (com
+  atribuição). CC BY-SA (ex.: Wikipédia) não entra, porque o texto
+  gerado poderia ser obra derivada sob a mesma licença. Obras com
+  direitos autorais podem ser citadas pelo revisor, mas não alimentam o
+  modelo.
+- Entidade sem nenhuma fonte com texto disponível não gera rascunho de
+  texto; o pipeline informa o motivo.
+
+**Modelo:** Gemini Flash na camada gratuita do Google AI Studio. É a
+única opção gratuita com contexto (1M tokens) para receber a fonte
+inteira, sem corte. Custo zero, limitado pela cota diária do plano,
+folgada para a geração entidade a entidade. O nome exato do modelo fica
+em configuração (`ORTELIUS_DRAFT_MODEL`), e o pipeline chama o modelo
+por uma interface própria de geração de rascunho: trocar de modelo ou de
+provedor não exige reescrever o pipeline.
+
+Na camada gratuita, o Google usa entradas e saídas para melhorar seus
+produtos e pode revisá-las. Aceitável aqui: só vão textos de fontes
+abertas e dados públicos da entidade. Um modelo menor tende a afirmar
+mais coisas que as fontes não dizem; a revisão obrigatória e os pontos
+a conferir compensam isso.
+
+**Saída:** estruturada por JSON Schema (resumo, introdução, seções com
+chave, título e blocos do §2.1), convertida para o documento do editor
+e validada pelo mesmo conversor da API antes de gravar. Para o revisor,
+a saída também traz:
+- as fontes usadas em cada seção (só ids das fontes fornecidas);
+- os pontos a conferir: afirmações que o modelo não encontrou
+  explicitamente nas fontes.
+
+Ambos ficam na origem do rascunho, visível no painel. Recusa, resposta
+cortada ou cota esgotada falham a entidade com o motivo, sem gravar
+nada.
+
+**Segredo:** `ORTELIUS_GEMINI_API_KEY` em `.env` (fora do
+repositório). Os testes usam cliente falso; o CI não tem chave. Só o
+texto das fontes e os dados da entidade são enviados ao provedor, sem
+dados pessoais.
+
 **Regras:**
 - O pipeline só escreve rascunhos. Publicar é sempre ação do revisor.
 - Idempotência por identificador externo (código Wikidata, ex.:
@@ -260,7 +307,7 @@ afirmar com segurança algo que as fontes não dizem.
 | Base mundial | Natural Earth | Domínio público. Baixo risco. |
 | Lugares antigos | Pleiades | CC BY; exige atribuição. |
 | Fatos estruturados das entidades | Wikidata | CC0. Baixo risco de licença; qualidade varia por item e precisa de revisão. |
-| Rascunho de texto | Modelo de linguagem via API (provedor a definir) | Custo por entidade, chave de API como segredo, e erros factuais que exigem revisão contra as fontes. |
+| Rascunho de texto | Gemini Flash, camada gratuita do Google AI Studio (§3.8) | Erros factuais que exigem revisão contra as fontes; cota e modelos gratuitos podem mudar sem aviso; dados usados pelo Google no plano gratuito (só conteúdo aberto); disponibilidade de texto aberto das fontes; chave de API como segredo. |
 | Fronteiras históricas | A pesquisar (ex.: historical-basemaps) | Licença, precisão e procedência de cada geometria. **Maior risco de dados do MVP.** 6 recortes × região prioritária, cada geometria com fonte. |
 
 A região prioritária é registrada como um polígono de cobertura por
@@ -350,7 +397,5 @@ Técnicas, para decidir durante a execução:
    (ex.: armazenamento S3 com CDN e URL pública montada pela API).
 3. Origem e licença das imagens das entidades.
 4. Observabilidade mínima (logs e erros) no lançamento.
-5. Provedor e modelo de linguagem para os rascunhos de texto, e custo
-   estimado por entidade.
 
 Bloqueantes de negócio: ver `spec.md` §7.
