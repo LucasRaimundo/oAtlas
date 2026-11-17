@@ -264,8 +264,31 @@ provedor não exige reescrever o pipeline.
 Na camada gratuita, o Google usa entradas e saídas para melhorar seus
 produtos e pode revisá-las. Aceitável aqui: só vão textos de fontes
 abertas e dados públicos da entidade. Um modelo menor tende a afirmar
-mais coisas que as fontes não dizem; a revisão obrigatória e os pontos
-a conferir compensam isso.
+mais coisas que as fontes não dizem; a revisão obrigatória compensa
+isso.
+
+**Segundo provedor: OpenRouter, modelos `:free`.** No aceite da fase 2b,
+o Gemini gratuito ficou mais de 14 horas devolvendo 503 (sobrecarga) e a
+cota diária se esgotou em tentativas. O pipeline passou a aceitar
+`--provedor openrouter` (`ORTELIUS_DRAFT_PROVIDER`), com o modelo em
+`ORTELIUS_DRAFT_MODEL`. Regras aprendidas:
+- Fixar a versão do modelo. Apelidos como `gemini-flash-latest`
+  apontam para o modelo mais novo, que é o mais congestionado.
+- Modelos gratuitos menores quebram schemas ricos: misturaram campos de
+  tipos de bloco diferentes e omitiram campos obrigatórios. No
+  OpenRouter o schema é estrito e só de parágrafos; o revisor estrutura
+  títulos, listas e citações no painel.
+- Modelos de raciocínio contam o pensamento como saída: o raciocínio é
+  limitado (`effort: low`) para sobrar espaço para a resposta.
+- A chave de cada seção sai do título, nunca do modelo.
+- Timeout de leitura não é repetido (reenviaria as fontes e gastaria
+  cota); cota diária esgotada para o lote.
+- Resposta recusada pelo validador é salva localmente
+  (`.pipeline/recusadas/`) para diagnóstico e reprocessamento sem nova
+  chamada ao modelo.
+
+Para o volume da fase 7, provedor gratuito não é confiável o bastante:
+decidir entre plano pago e fila com novas tentativas (§9).
 
 **Saída:** estruturada por JSON Schema (resumo, introdução, seções com
 chave, título e blocos do §2.1), convertida para o documento do editor
@@ -279,8 +302,8 @@ Ambos ficam na origem do rascunho, visível no painel. Recusa, resposta
 cortada ou cota esgotada falham a entidade com o motivo, sem gravar
 nada.
 
-**Segredo:** `ORTELIUS_GEMINI_API_KEY` em `.env` (fora do
-repositório). Os testes usam cliente falso; o CI não tem chave. Só o
+**Segredo:** `ORTELIUS_GEMINI_API_KEY` e `ORTELIUS_OPENROUTER_API_KEY`
+em `.env` (fora do repositório). Os testes usam cliente falso; o CI não tem chave. Só o
 texto das fontes e os dados da entidade são enviados ao provedor, sem
 dados pessoais.
 
@@ -299,6 +322,29 @@ dados pessoais.
 as fontes indicadas antes de publicar. O risco principal é o modelo
 afirmar com segurança algo que as fontes não dizem.
 
+**Resultado do aceite (fase 2b, 5 entidades).** Augusto (Gemini) e
+Batalha de Alésia, Vercingetórix, Virgílio e Marco Antônio (Ernie, via
+OpenRouter), gerados a partir de César, Suetônio e Plutarco.
+- **Erros:** cerca de 65 correções factuais, de 5 a 19 por entidade,
+  além de grafia e ordem dos fatos. Os números e datas quase sempre
+  batiam com a fonte. Os erros eram de atribuição (quem disse ou fez o
+  quê), de causa e de sequência, que uma leitura rápida não pega.
+- **Pontos a conferir:** só 3 dos 28 procediam, e a maioria dos erros
+  reais estava fora da lista. Não servem como guia da revisão; ficam
+  como registro, sem valor de triagem.
+- **Pré-revisão por agente:** um agente comparou cada rascunho com a
+  fonte, trecho a trecho, e devolveu cada correção com a citação. O
+  revisor leu e aprovou as correções em cerca de 10 minutos para as 5,
+  sem escrever texto à mão. Proposta: tornar isso um passo do pipeline
+  (§9).
+- **Painel:** escritas diretas do pipeline no banco não aparecem no
+  histórico de revisões do Directus; a origem do rascunho só ficou
+  legível com a coleção visível no menu. Rótulos `pt` do Wikidata às
+  vezes vêm na grafia de Portugal ("Marco António") e precisam de
+  revisão.
+- **Imagens:** o painel aceitou capas de banco de imagens com direitos
+  autorais. Capa precisa de origem e licença obrigatórias (§9).
+
 ## 4. Provedores e dados
 
 | Necessidade | Candidato | Risco a validar |
@@ -307,7 +353,7 @@ afirmar com segurança algo que as fontes não dizem.
 | Base mundial | Natural Earth | Domínio público. Baixo risco. |
 | Lugares antigos | Pleiades | CC BY; exige atribuição. |
 | Fatos estruturados das entidades | Wikidata | CC0. Baixo risco de licença; qualidade varia por item e precisa de revisão. |
-| Rascunho de texto | Gemini Flash, camada gratuita do Google AI Studio (§3.8) | Erros factuais que exigem revisão contra as fontes; cota e modelos gratuitos podem mudar sem aviso; dados usados pelo Google no plano gratuito (só conteúdo aberto); disponibilidade de texto aberto das fontes; chave de API como segredo. |
+| Rascunho de texto | Gemini Flash, camada gratuita do Google AI Studio; OpenRouter (modelos `:free`) como segundo provedor (§3.8) | Erros factuais que exigem revisão contra as fontes (cerca de 13 por entidade no aceite); camada gratuita indisponível por horas e cota diária baixa (validado na fase 2b); modelos menores quebram o schema; dados usados pelos provedores no plano gratuito (só conteúdo aberto); disponibilidade de texto aberto das fontes; chaves de API como segredo. |
 | Fronteiras históricas | A pesquisar (ex.: historical-basemaps) | Licença, precisão e procedência de cada geometria. **Maior risco de dados do MVP.** 6 recortes × região prioritária, cada geometria com fonte. |
 
 A região prioritária é registrada como um polígono de cobertura por
@@ -395,7 +441,16 @@ Técnicas, para decidir durante a execução:
 2. CDN e armazenamento para arquivos estáticos e mídia, incluindo como
    o frontend obtém as imagens enviadas pelo Directus sem chamá-lo
    (ex.: armazenamento S3 com CDN e URL pública montada pela API).
-3. Origem e licença das imagens das entidades.
+3. Origem e licença das imagens das entidades. No aceite da fase 2b, o
+   painel aceitou capas sem origem; proposta: autor, licença e link da
+   fonte obrigatórios no arquivo antes de publicar.
 4. Observabilidade mínima (logs e erros) no lançamento.
+5. Pré-revisão por agente como passo do pipeline (`pipeline.revisar`):
+   compara o rascunho com a fonte e grava as correções sugeridas, com
+   citação, para o revisor aceitar ou descartar no painel.
+6. Provedor do modelo para o volume da fase 7: plano pago ou camada
+   gratuita com fila e novas tentativas.
+7. Gravar pelo pipeline via API do Directus, para as escritas
+   aparecerem no histórico de revisões do painel.
 
 Bloqueantes de negócio: ver `spec.md` §7.
