@@ -1,0 +1,852 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Ortelius",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/entities/{slug}": {
+      "get": {
+        "tags": [
+          "entities"
+        ],
+        "summary": "Get Entity",
+        "operationId": "get_entity_v1_entities__slug__get",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 180,
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Alias": {
+        "properties": {
+          "alias": {
+            "type": "string",
+            "title": "Alias"
+          },
+          "language_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language Code"
+          },
+          "alias_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alias Type"
+          },
+          "start_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Year",
+            "description": "Ano astronômico (1 a.C. = 0)."
+          },
+          "end_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Year",
+            "description": "Ano astronômico (1 a.C. = 0)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "alias",
+          "language_code",
+          "alias_type",
+          "start_year",
+          "end_year"
+        ],
+        "title": "Alias"
+      },
+      "EntityDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "entity_type": {
+            "$ref": "#/components/schemas/EntityType"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "cover_media": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Media"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PointLocation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "aliases": {
+            "items": {
+              "$ref": "#/components/schemas/Alias"
+            },
+            "type": "array",
+            "title": "Aliases"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/Section"
+            },
+            "type": "array",
+            "title": "Sections"
+          },
+          "relations": {
+            "items": {
+              "$ref": "#/components/schemas/Relation"
+            },
+            "type": "array",
+            "title": "Relations"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "entity_type",
+          "summary",
+          "description",
+          "cover_media",
+          "location",
+          "aliases",
+          "sections",
+          "relations",
+          "sources"
+        ],
+        "title": "EntityDetail"
+      },
+      "EntityType": {
+        "type": "string",
+        "enum": [
+          "place",
+          "civilization",
+          "state",
+          "person",
+          "event",
+          "culture",
+          "work",
+          "concept"
+        ],
+        "title": "EntityType"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HeadingBlock": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "heading",
+            "title": "Type"
+          },
+          "level": {
+            "type": "integer",
+            "enum": [
+              3,
+              4
+            ],
+            "title": "Level",
+            "description": "3 ou 4: o nível 1 é o nome da entidade e o 2, o título da seção."
+          },
+          "text": {
+            "items": {
+              "$ref": "#/components/schemas/TextRun"
+            },
+            "type": "array",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "level",
+          "text"
+        ],
+        "title": "HeadingBlock"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "HealthResponse"
+      },
+      "ListBlock": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "list",
+            "title": "Type"
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "ordered",
+              "unordered"
+            ],
+            "title": "Style"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "style",
+          "items"
+        ],
+        "title": "ListBlock"
+      },
+      "ListItem": {
+        "properties": {
+          "text": {
+            "items": {
+              "$ref": "#/components/schemas/TextRun"
+            },
+            "type": "array",
+            "title": "Text"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ListItem"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Subitens, para listas aninhadas."
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "items"
+        ],
+        "title": "ListItem"
+      },
+      "ParagraphBlock": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "paragraph",
+            "title": "Type"
+          },
+          "text": {
+            "items": {
+              "$ref": "#/components/schemas/TextRun"
+            },
+            "type": "array",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "text"
+        ],
+        "title": "ParagraphBlock"
+      },
+      "PointLocation": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Point",
+            "title": "Type",
+            "default": "Point"
+          },
+          "coordinates": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Coordinates",
+            "description": "[longitude, latitude] em WGS 84 (EPSG:4326)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "coordinates"
+        ],
+        "title": "PointLocation"
+      },
+      "QuoteBlock": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "quote",
+            "title": "Type"
+          },
+          "text": {
+            "items": {
+              "$ref": "#/components/schemas/TextRun"
+            },
+            "type": "array",
+            "title": "Text"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption",
+            "description": "Autor ou origem da citação, em texto puro."
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "text",
+          "caption"
+        ],
+        "title": "QuoteBlock"
+      },
+      "RelatedEntity": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "entity_type": {
+            "$ref": "#/components/schemas/EntityType"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "entity_type",
+          "summary"
+        ],
+        "title": "RelatedEntity"
+      },
+      "Relation": {
+        "properties": {
+          "direction": {
+            "type": "string",
+            "enum": [
+              "outgoing",
+              "incoming",
+              "mutual"
+            ],
+            "title": "Direction",
+            "description": "`outgoing`: esta entidade é a origem; `incoming`: é o destino; `mutual`: relação sem direção."
+          },
+          "relation_type": {
+            "type": "string",
+            "title": "Relation Type"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "Rótulo já orientado a partir desta entidade. Nulo quando o tipo não tem rótulo inverso."
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "start_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Year",
+            "description": "Ano astronômico (1 a.C. = 0)."
+          },
+          "end_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Year",
+            "description": "Ano astronômico (1 a.C. = 0)."
+          },
+          "entity": {
+            "$ref": "#/components/schemas/RelatedEntity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "direction",
+          "relation_type",
+          "label",
+          "description",
+          "start_year",
+          "end_year",
+          "entity"
+        ],
+        "title": "Relation"
+      },
+      "Section": {
+        "properties": {
+          "section_key": {
+            "type": "string",
+            "title": "Section Key"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "content": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/HeadingBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/ParagraphBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/ListBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/QuoteBlock"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "heading": "#/components/schemas/HeadingBlock",
+                  "list": "#/components/schemas/ListBlock",
+                  "paragraph": "#/components/schemas/ParagraphBlock",
+                  "quote": "#/components/schemas/QuoteBlock"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "section_key",
+          "title",
+          "position",
+          "content"
+        ],
+        "title": "Section"
+      },
+      "Source": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "source_type": {
+            "$ref": "#/components/schemas/SourceType"
+          },
+          "author_or_institution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Or Institution"
+          },
+          "publication_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publication Year",
+            "description": "Ano astronômico (1 a.C. = 0)."
+          },
+          "publisher_or_journal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publisher Or Journal"
+          },
+          "identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identifier"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "contribution_type": {
+            "type": "string",
+            "title": "Contribution Type"
+          },
+          "locator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locator"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "source_type",
+          "author_or_institution",
+          "publication_year",
+          "publisher_or_journal",
+          "identifier",
+          "url",
+          "contribution_type",
+          "locator"
+        ],
+        "title": "Source"
+      },
+      "SourceType": {
+        "type": "string",
+        "enum": [
+          "book",
+          "article",
+          "primary_source",
+          "map",
+          "archive",
+          "dataset",
+          "journalism"
+        ],
+        "title": "SourceType"
+      },
+      "TextRun": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "bold": {
+            "type": "boolean",
+            "title": "Bold"
+          },
+          "italic": {
+            "type": "boolean",
+            "title": "Italic"
+          },
+          "href": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Href",
+            "description": "Link http(s), quando o trecho é um link."
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "bold",
+          "italic",
+          "href"
+        ],
+        "title": "TextRun",
+        "description": "Trecho de texto com formatação uniforme. O frontend monta o texto a partir dos trechos, nunca de HTML."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
