@@ -1,10 +1,29 @@
 import { z } from "zod";
 
-import { zEntityDetail, zGetEntityV1EntitiesSlugGetPath, zSection } from "./generated/zod.gen";
+import {
+  zEntityDetail,
+  zGetEntityV1EntitiesSlugGetPath,
+  zHeadingBlock,
+  zListBlock,
+  zParagraphBlock,
+  zQuoteBlock,
+  zSection,
+  zTextRun,
+} from "./generated/zod.gen";
 
 const REQUEST_TIMEOUT_MS = 5_000;
 
-export type Section = z.infer<typeof zSection>;
+export type TextRun = z.infer<typeof zTextRun>;
+
+// O gerador tipa a recursão de ListItem como `any`; o Zod valida em runtime, este tipo devolve a checagem estática.
+export type ListItem = { text: TextRun[]; items: ListItem[] };
+export type ListBlock = Omit<z.infer<typeof zListBlock>, "items"> & { items: ListItem[] };
+export type ContentBlock =
+  | z.infer<typeof zHeadingBlock>
+  | z.infer<typeof zParagraphBlock>
+  | ListBlock
+  | z.infer<typeof zQuoteBlock>;
+export type Section = Omit<z.infer<typeof zSection>, "content"> & { content: ContentBlock[] };
 export type Entity = Omit<z.infer<typeof zEntityDetail>, "sections"> & { sections: Section[] };
 
 export type EntityLookup = { found: true; entity: Entity } | { found: false };
