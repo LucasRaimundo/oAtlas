@@ -19,6 +19,8 @@ const entity: Entity = {
   cover_media: null,
   cover: null,
   location: null,
+  start_year: -69,
+  end_year: -18,
   aliases: [],
   sections: [],
   relations: [],
@@ -57,10 +59,17 @@ const source = (overrides: Partial<Source>): Source => ({
 });
 
 describe("EntityHeader", () => {
-  it("shows the type, name and summary, and the description as escaped paragraphs", () => {
+  it("shows only the type when the entity has no dates", () => {
+    const html = renderToStaticMarkup(<EntityHeader entity={{ ...entity, start_year: null, end_year: null }} />);
+
+    expect(html).not.toContain(" · ");
+  });
+
+  it("shows the type, dates, name and summary, and the description as escaped paragraphs", () => {
     const html = renderToStaticMarkup(<EntityHeader entity={entity} />);
 
     expect(html).toContain(">Pessoa<");
+    expect(html).toContain("<span>70–19 a.C.</span>");
     expect(html).toMatch(/<h1[^>]*>Virgílio<\/h1>/);
     expect(html).toContain("Poeta romano.");
     expect(html.match(/<p class="mt-4 leading-relaxed">/g)).toHaveLength(2);

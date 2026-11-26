@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatPeriod, formatYear, groupRelations, sourceDetails, splitParagraphs, type Relation, type Source } from "../format";
+import { entityDates, formatPeriod, formatYear, groupRelations, sourceDetails, splitParagraphs, type Relation, type Source } from "../format";
 
 function relation(slug: string, label: string | null, relation_type = "related_to"): Relation {
   return {
@@ -72,6 +72,20 @@ describe("formatPeriod", () => {
     [null, null, null],
   ])("formats %s to %s as %j", (start, end, expected) => {
     expect(formatPeriod(start, end)).toBe(expected);
+  });
+});
+
+describe("entityDates", () => {
+  it.each([
+    ["person", -69, -18, "70–19 a.C."],
+    ["person", null, -45, "m. 46 a.C."],
+    ["person", -81, null, "n. 82 a.C."],
+    ["state", -26, 395, "27 a.C.–395"],
+    ["event", -51, -51, "52 a.C."],
+    ["state", -752, null, "a partir de 753 a.C."],
+    ["work", null, null, null],
+  ] as const)("formats a %s from %s to %s as %j", (entity_type, start_year, end_year, expected) => {
+    expect(entityDates({ entity_type, start_year, end_year })).toBe(expected);
   });
 });
 

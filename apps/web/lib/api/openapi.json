@@ -369,6 +369,30 @@
               }
             ]
           },
+          "start_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Year",
+            "description": "Ano astronômico (1 a.C. = 0): nascimento, começo do evento ou fundação."
+          },
+          "end_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Year",
+            "description": "Ano astronômico (1 a.C. = 0): morte, fim do evento ou dissolução."
+          },
           "aliases": {
             "items": {
               "$ref": "#/components/schemas/Alias"
@@ -409,6 +433,8 @@
           "cover_media",
           "cover",
           "location",
+          "start_year",
+          "end_year",
           "aliases",
           "sections",
           "relations",

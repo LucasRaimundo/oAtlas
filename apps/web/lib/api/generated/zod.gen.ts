@@ -232,6 +232,8 @@ export const zEntityDetail = z.object({
     cover_media: z.string().nullable(),
     cover: zCover.nullable(),
     location: zPointLocation.nullable(),
+    start_year: z.int().nullable(),
+    end_year: z.int().nullable(),
     aliases: z.array(zAlias),
     sections: z.array(zSection),
     relations: z.array(zRelation),
