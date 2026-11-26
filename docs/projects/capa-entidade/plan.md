@@ -158,6 +158,7 @@ O layout imersivo continua na issue de layout. Aqui a capa entra no cabeçalho a
 | Original ausente no armazenamento | 404 na imagem e log com `file_id`. A página esconde a capa e mostra o resto. |
 | Pillow não abre o arquivo (corrompido, tipo errado) | 404 e log. O painel não impede o upload, mas a capa não aparece. Para o revisor detectar, o painel mostra a prévia. |
 | Primeiro acesso a um tamanho (geração) | Algumas centenas de ms numa capa grande; os seguintes vêm do cache. |
+| Capa de detalhe muito fino (mosaico, gravura) | Passa de 200 KB no celular mesmo em 960 px (Virgílio: 362 KB; com qualidade 60, 260 KB). Aceito como exceção. O celular pede no máximo 960 px (`sizes` em `lib/entity/cover.ts`); limitar a 480 px resolveria o peso ao custo de nitidez em telas 3x. |
 | Cache em disco cresce | Limitado a 3 tamanhos por capa e por versão. As versões antigas se limpam apagando a pasta, sem risco. |
 
 ## 6. Decisões que preciso de você

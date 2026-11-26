@@ -82,7 +82,8 @@ A lista é fechada no painel: não existe opção "outra".
 - Tentar publicar uma entidade com capa sem autor, licença ou fonte é bloqueado no painel.
 - Um arquivo que não é capa de entidade publicada (rascunho, arquivo solto) responde 404 na API.
 - A página não chama o Directus. A imagem chega no tamanho da tela: abaixo de 200 KB no celular para a
-  capa padrão.
+  capa padrão. Imagens de detalhe muito fino podem passar disso (a capa de Virgílio, um mosaico, pesa 362 KB
+  em 960 px; baixar a qualidade quase não ajuda); é aceito como exceção, sem degradar as demais.
 - Com a imagem indisponível, a página aparece inteira, sem imagem quebrada.
 - O crédito tem link para a fonte e para o texto da licença.
 

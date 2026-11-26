@@ -8,12 +8,36 @@ import { EntitySections } from "@/components/entity/EntitySections";
 import { EntitySkeleton } from "@/components/entity/EntitySkeleton";
 import { EntitySources } from "@/components/entity/EntitySources";
 import { getEntityCached } from "@/lib/api/cached-entities";
+import { largestRendition, type Cover } from "@/lib/entity/cover";
 
 export async function generateMetadata({ params }: PageProps<"/entidade/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const lookup = await getEntityCached(slug);
   if (!lookup.found) return { title: "Entidade não encontrada · Atlas" };
-  return { title: `${lookup.entity.name} · Atlas`, description: lookup.entity.summary ?? undefined };
+
+  const { entity } = lookup;
+  return {
+    title: `${entity.name} · Atlas`,
+    description: entity.summary ?? undefined,
+    openGraph: shareImage(entity.cover),
+  };
+}
+
+// A imagem de compartilhamento precisa de URL absoluta: só existe com o endereço público do site configurado.
+function shareImage(cover: Cover | null): Metadata["openGraph"] {
+  const siteUrl = process.env.SITE_URL;
+  const largest = cover && siteUrl ? largestRendition(cover) : null;
+  if (!cover || !siteUrl || !largest) return undefined;
+  return {
+    images: [
+      {
+        url: new URL(largest.path, siteUrl).toString(),
+        width: largest.width,
+        height: Math.round((cover.height * largest.width) / cover.width),
+        alt: cover.alt_text,
+      },
+    ],
+  };
 }
 
 async function EntityArticle({ params }: Pick<PageProps<"/entidade/[slug]">, "params">) {

@@ -67,6 +67,16 @@
             },
             "description": "Not Found"
           },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
           "503": {
             "content": {
               "application/json": {
@@ -76,6 +86,70 @@
               }
             },
             "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/media/{media_id}/{width}.webp": {
+      "get": {
+        "tags": [
+          "media"
+        ],
+        "summary": "Get Rendition",
+        "operationId": "get_rendition_v1_media__media_id___width__webp_get",
+        "parameters": [
+          {
+            "name": "media_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Media Id"
+            }
+          },
+          {
+            "name": "width",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Width"
+            }
+          },
+          {
+            "name": "v",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "V"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/webp": {}
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
           },
           "422": {
             "description": "Validation Error",
@@ -86,6 +160,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         }
       }
@@ -156,6 +240,63 @@
         ],
         "title": "Alias"
       },
+      "Cover": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "alt_text": {
+            "type": "string",
+            "title": "Alt Text"
+          },
+          "caption": {
+            "type": "string",
+            "title": "Caption"
+          },
+          "author": {
+            "type": "string",
+            "title": "Author"
+          },
+          "license": {
+            "$ref": "#/components/schemas/License"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width",
+            "description": "Largura do original; com `height`, dá a proporção da imagem."
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          },
+          "renditions": {
+            "items": {
+              "$ref": "#/components/schemas/Rendition"
+            },
+            "type": "array",
+            "title": "Renditions",
+            "description": "Tamanhos disponíveis, do menor para o maior."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "alt_text",
+          "caption",
+          "author",
+          "license",
+          "source_url",
+          "width",
+          "height",
+          "renditions"
+        ],
+        "title": "Cover"
+      },
       "EntityDetail": {
         "properties": {
           "id": {
@@ -204,7 +345,19 @@
                 "type": "null"
               }
             ],
-            "title": "Cover Media"
+            "title": "Cover Media",
+            "description": "Substituído por `cover`; sai depois que o frontend migrar.",
+            "deprecated": true
+          },
+          "cover": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cover"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "location": {
             "anyOf": [
@@ -254,6 +407,7 @@
           "summary",
           "description",
           "cover_media",
+          "cover",
           "location",
           "aliases",
           "sections",
@@ -347,6 +501,46 @@
           "status"
         ],
         "title": "HealthResponse"
+      },
+      "ImageLicense": {
+        "type": "string",
+        "enum": [
+          "public_domain",
+          "cc0",
+          "cc_by",
+          "cc_by_sa"
+        ],
+        "title": "ImageLicense",
+        "description": "Licenças aceitas para imagens exibidas no Atlas: permitem uso comercial futuro e exigem no máximo atribuição."
+      },
+      "License": {
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ImageLicense"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "label",
+          "url"
+        ],
+        "title": "License"
       },
       "ListBlock": {
         "properties": {
@@ -603,6 +797,25 @@
           "entity"
         ],
         "title": "Relation"
+      },
+      "Rendition": {
+        "properties": {
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path",
+            "description": "Caminho na API, com a versão do arquivo; o conteúdo de um caminho nunca muda."
+          }
+        },
+        "type": "object",
+        "required": [
+          "width",
+          "path"
+        ],
+        "title": "Rendition"
       },
       "Section": {
         "properties": {
