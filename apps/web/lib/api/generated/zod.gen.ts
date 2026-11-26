@@ -42,6 +42,27 @@ export const zHealthResponse = z.object({
 });
 
 /**
+ * ImageLicense
+ *
+ * Licenças aceitas para imagens exibidas no Atlas: permitem uso comercial futuro e exigem no máximo atribuição.
+ */
+export const zImageLicense = z.enum([
+    'public_domain',
+    'cc0',
+    'cc_by',
+    'cc_by_sa'
+]);
+
+/**
+ * License
+ */
+export const zLicense = z.object({
+    code: zImageLicense,
+    label: z.string(),
+    url: z.string().nullable()
+});
+
+/**
  * PointLocation
  */
 export const zPointLocation = z.object({
@@ -74,6 +95,29 @@ export const zRelation = z.object({
     start_year: z.int().nullable(),
     end_year: z.int().nullable(),
     entity: zRelatedEntity
+});
+
+/**
+ * Rendition
+ */
+export const zRendition = z.object({
+    width: z.int(),
+    path: z.string()
+});
+
+/**
+ * Cover
+ */
+export const zCover = z.object({
+    id: z.string(),
+    alt_text: z.string(),
+    caption: z.string(),
+    author: z.string(),
+    license: zLicense,
+    source_url: z.string(),
+    width: z.int(),
+    height: z.int(),
+    renditions: z.array(zRendition)
 });
 
 /**
@@ -186,6 +230,7 @@ export const zEntityDetail = z.object({
     summary: z.string().nullable(),
     description: z.string().nullable(),
     cover_media: z.string().nullable(),
+    cover: zCover.nullable(),
     location: zPointLocation.nullable(),
     aliases: z.array(zAlias),
     sections: z.array(zSection),
@@ -224,3 +269,12 @@ export const zGetEntityV1EntitiesSlugGetPath = z.object({
  * Successful Response
  */
 export const zGetEntityV1EntitiesSlugGetResponse = zEntityDetail;
+
+export const zGetRenditionV1MediaMediaIdWidthWebpGetPath = z.object({
+    media_id: z.uuid(),
+    width: z.int()
+});
+
+export const zGetRenditionV1MediaMediaIdWidthWebpGetQuery = z.object({
+    v: z.string().nullish()
+});

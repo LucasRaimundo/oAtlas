@@ -441,9 +441,14 @@ Técnicas, para decidir durante a execução:
 2. CDN e armazenamento para arquivos estáticos e mídia, incluindo como
    o frontend obtém as imagens enviadas pelo Directus sem chamá-lo
    (ex.: armazenamento S3 com CDN e URL pública montada pela API).
+   Para as capas, proposta em `docs/projects/capa-entidade/plan.md`:
+   a API serve a imagem e o Next repassa; o armazenamento definitivo
+   continua aberto até a decisão de hospedagem.
 3. Origem e licença das imagens das entidades. No aceite da fase 2b, o
    painel aceitou capas sem origem; proposta: autor, licença e link da
-   fonte obrigatórios no arquivo antes de publicar.
+   fonte obrigatórios no arquivo antes de publicar. Proposta em
+   `docs/projects/capa-entidade/`: tabela `media` com crédito
+   obrigatório no banco.
 4. Observabilidade mínima (logs e erros) no lançamento.
 5. Pré-revisão por agente como passo do pipeline (`pipeline.revisar`):
    compara o rascunho com a fonte e grava as correções sugeridas, com
