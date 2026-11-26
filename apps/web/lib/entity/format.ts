@@ -37,6 +37,14 @@ export function formatPeriod(start: number | null, end: number | null): string |
   return null;
 }
 
+/** Início e fim da entidade. Pessoa com um ano só fica com a marca de nascimento ou morte. */
+export function entityDates(entity: Pick<Entity, "entity_type" | "start_year" | "end_year">): string | null {
+  const { entity_type, start_year: start, end_year: end } = entity;
+  if (entity_type === "person" && end === null && start !== null) return `n. ${formatYear(start)}`;
+  if (entity_type === "person" && start === null && end !== null) return `m. ${formatYear(end)}`;
+  return formatPeriod(start, end);
+}
+
 export type RelationGroup = { label: string; relations: Relation[] };
 
 /** Agrupa pelo rótulo ("é autor de", "nasceu em"…), mantendo a ordem em que a API entrega. */
