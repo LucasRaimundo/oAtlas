@@ -18,14 +18,19 @@ export function entityTypeLabel(type: Entity["entity_type"]): string {
   return ENTITY_TYPE_LABELS[type];
 }
 
-/** Ano histórico: negativos são antes de Cristo (a API não tem ano zero). */
+/**
+ * A API usa ano astronômico, que tem ano zero: 1 a.C. = 0, 70 a.C. = −69. Positivos são d.C. e ficam iguais.
+ */
 export function formatYear(year: number): string {
-  return year < 0 ? `${-year} a.C.` : String(year);
+  return year <= 0 ? `${1 - year} a.C.` : String(year);
 }
 
 export function formatPeriod(start: number | null, end: number | null): string | null {
   if (start !== null && end !== null) {
-    return start === end ? formatYear(start) : `${formatYear(start)}–${formatYear(end)}`;
+    if (start === end) return formatYear(start);
+    // Dois anos a.C. dividem a marca: "70–19 a.C.".
+    if (end <= 0) return `${1 - start}–${formatYear(end)}`;
+    return `${formatYear(start)}–${formatYear(end)}`;
   }
   if (start !== null) return `a partir de ${formatYear(start)}`;
   if (end !== null) return `até ${formatYear(end)}`;
