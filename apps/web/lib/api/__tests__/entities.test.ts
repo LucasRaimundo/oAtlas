@@ -18,7 +18,6 @@ function entityBody(overrides: Record<string, unknown> = {}) {
     entity_type: "person",
     summary: "Poeta romano.",
     description: null,
-    cover_media: null,
     cover: null,
     location: { type: "Point", coordinates: [10.7914, 45.1564] },
     start_year: -69,

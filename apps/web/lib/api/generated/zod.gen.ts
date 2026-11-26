@@ -229,7 +229,6 @@ export const zEntityDetail = z.object({
     entity_type: zEntityType,
     summary: z.string().nullable(),
     description: z.string().nullable(),
-    cover_media: z.string().nullable(),
     cover: zCover.nullable(),
     location: zPointLocation.nullable(),
     start_year: z.int().nullable(),

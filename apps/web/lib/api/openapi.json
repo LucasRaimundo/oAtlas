@@ -336,19 +336,6 @@
             ],
             "title": "Description"
           },
-          "cover_media": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cover Media",
-            "description": "Substituído por `cover`; sai depois que o frontend migrar.",
-            "deprecated": true
-          },
           "cover": {
             "anyOf": [
               {
@@ -430,7 +417,6 @@
           "entity_type",
           "summary",
           "description",
-          "cover_media",
           "cover",
           "location",
           "start_year",

@@ -16,7 +16,6 @@ const entity: Entity = {
   entity_type: "person",
   summary: "Poeta romano.",
   description: "Nasceu perto de Mântua.\n\n<b>Escreveu</b> a Eneida.",
-  cover_media: null,
   cover: null,
   location: null,
   start_year: -69,
