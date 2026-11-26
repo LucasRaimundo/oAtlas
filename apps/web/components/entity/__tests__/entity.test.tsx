@@ -37,8 +37,8 @@ const relation: Relation = {
   relation_type: "author_of",
   label: "é autor de",
   description: null,
-  start_year: -29,
-  end_year: -19,
+  start_year: -28,
+  end_year: -18,
   entity: { slug: "eneida", name: "Eneida", entity_type: "work", summary: null },
 };
 
@@ -83,7 +83,7 @@ describe("EntityRelations", () => {
 
     expect(html).toContain(">é autor de</h3>");
     expect(html).toContain('href="/entidade/eneida"');
-    expect(html).toContain("Obra · 29 a.C.–19 a.C.");
+    expect(html).toContain("Obra · 29–19 a.C.");
   });
 
   it("renders nothing when there are no relations", () => {

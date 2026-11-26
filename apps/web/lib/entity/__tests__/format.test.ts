@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatPeriod, groupRelations, sourceDetails, splitParagraphs, type Relation, type Source } from "../format";
+import { formatPeriod, formatYear, groupRelations, sourceDetails, splitParagraphs, type Relation, type Source } from "../format";
 
 function relation(slug: string, label: string | null, relation_type = "related_to"): Relation {
   return {
@@ -49,12 +49,25 @@ describe("groupRelations", () => {
   });
 });
 
+describe("formatYear", () => {
+  it.each([
+    [0, "1 a.C."],
+    [1, "1"],
+    [-69, "70 a.C."],
+    [-26, "27 a.C."],
+    [476, "476"],
+  ])("reads astronomical year %s as %j", (year, expected) => {
+    expect(formatYear(year)).toBe(expected);
+  });
+});
+
 describe("formatPeriod", () => {
   it.each([
-    [-70, -19, "70 a.C.–19 a.C."],
-    [-27, 14, "27 a.C.–14"],
-    [-19, -19, "19 a.C."],
-    [-52, null, "a partir de 52 a.C."],
+    [-69, -18, "70–19 a.C."],
+    [-26, 14, "27 a.C.–14"],
+    [0, 1, "1 a.C.–1"],
+    [-18, -18, "19 a.C."],
+    [-51, null, "a partir de 52 a.C."],
     [null, 476, "até 476"],
     [null, null, null],
   ])("formats %s to %s as %j", (start, end, expected) => {
